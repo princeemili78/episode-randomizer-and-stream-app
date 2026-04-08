@@ -123,6 +123,11 @@ class TvShow:
     def episodes_by_season(self):
         seasons_dict = {season: [episode for episode in self.all_episodes if episode.season == season] for season in self.season_list}
         return seasons_dict
+
+# Create list of episode numbers in a specific season
+    def episode_numbers_in_season(self, season):
+        return [episode.number for episode in self.season_episode_dict[season]]
+
 # Create list of episodes that satisfy seasons and rating requirements
     def valid_episodes(self, rating=0, seasons=None):
         if seasons == [] or seasons == None:
