@@ -5,39 +5,32 @@ from episode_puller_v2 import fuzzy_search_result
 
 st.title("What do you want to watch?")
 
-# Block of if statements below add necessary values to session state so they are tacked each rerun
-if "show" not in st.session_state:
-    st.session_state["show"] = ""    
-if "show_name" not in st.session_state:   
-    st.session_state["show_name"] = ""
-if "episode_generated" not in st.session_state:
-    st.session_state["episode_generated"] = False
-if "episode" not in st.session_state:
-    st.session_state["episode"] = ""
-if "rating" not in st.session_state:
-    st.session_state["rating"] = None
-if "seasons" not in st.session_state:
-    st.session_state["seasons"] = []
-if "valid_episodes" not in st.session_state:
-    st.session_state["valid_episodes"] = []
-if "episode_error" not in st.session_state:
-    st.session_state["episode_error"] = None
-if "disabled" not in st.session_state:
-    st.session_state["disabled"] = False
-if ["user_agent"] not in st.session_state:
-    st.session_state["user_agent"] = st.context.headers.get("User-Agent")
-if "season_choice" not in st.session_state:
-    st.session_state["season_choice"] = None
-if "previous_episode_error" not in st.session_state:
-    st.session_state["previous_episode_error"] = None
-if "next_episode_error" not in st.session_state:
-    st.session_state["next_episode_error"] = None
-if ["user_agent"] not in st.session_state:
-    st.session_state["user_agent"] = st.context.headers.get("User-Agent")
-if "random_mode" not in st.session_state:
-    st.session_state["random_mode"] = False
-if "specific_mode" not in st.session_state:
-    st.session_state["specific_mode"] = False
+# Set default values to set my session_state on the first app
+def initialize_session_state():
+    # Centralizing EVERY session state key used in your app
+    defaults = {
+        "show": "", 
+        "show_name": "", 
+        "episode_generated": False, 
+        "episode": "", 
+        "rating": None, 
+        "seasons": [], 
+        "valid_episodes": [], 
+        "episode_error": None,
+        "disabled": False,
+        "season_choice": None,
+        "next_episode_error": None,
+        "previous_episode_error": None,
+        "user_agent": st.context.headers.get("User-Agent"),
+        "random_mode": False,
+        "specific_mode": False
+    }
+    
+    for key, value in defaults.items():
+        if key not in st.session_state:
+            st.session_state[key] = value
+
+initialize_session_state()
 
 # Conditional to show first page of app where user can pick TV show, random/specific episodes and generate the episode
 if st.session_state["episode_generated"] == False:
