@@ -270,6 +270,10 @@ else:
                 ''',
                 unsafe_allow_html=True
             )
+            st.link_button(
+                "If the above player doesn't work, click me",
+                embed_url
+            )
         col3, col4 = st.columns([.69, .31])
         with col3:
             st.markdown(f"{st.session_state["episode"].season_and_number}")
@@ -400,7 +404,10 @@ else:
                 unsafe_allow_html=True
             )
 
-
+            st.link_button(
+                "If the above player doesn't work, click me",
+                embed_url
+            )
             
         col4, col5 = st.columns([.85, .15])
         with col5:
