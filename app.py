@@ -37,6 +37,7 @@ if st.session_state["episode_generated"] == False:
     # If a show has not been loaded then present the text box for the user to type out a show to watch
     if not isinstance(st.session_state["show"], TvShow):
         show_name = st.text_input("Name of Tv Show", help="Type name of show")
+        st.write("This is the right file")
         
         # create instance of tv show using user input
         # If a user has typed a show name that is different from the show that was previously loaded
