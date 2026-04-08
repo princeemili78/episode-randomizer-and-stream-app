@@ -262,6 +262,7 @@ else:
                         <iframe 
                             src="{embed_url}" 
                             referrerpolicy="origin" 
+                            sandbox="allow-forms allow-scripts allow-same-origin"
                             allow="autoplay; fullscreen; encrypted-media" 
                             allowfullscreen>
                         </iframe>
