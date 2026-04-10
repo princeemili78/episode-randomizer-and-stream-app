@@ -14,14 +14,19 @@ class Episode:
     def __init__(self, episode_info, imdb_id, tmdb_id):
         self.episode_info = episode_info
         self.imdb_id = imdb_id
-        self.tmdb_id = tmdb_id
-        self.season = self.set_self("No season info", "season")
-        self.number = self.set_self("No episode number", "number")
+        self.tmdb_id = str(tmdb_id)
+        self.season = str(self.set_self("No season info", "season"))
+        self.number = str(self.set_self("No episode number", "number"))
         self.season_and_number = f"Season {self.season} Episode {self.number}"     
         self.name = self.set_self("No episode name", "name")
         self.rating = self.set_self(0, "rating", "average")
         self.type = self.set_self("No type found", "type")
         self.image = self.set_self("https://placehold.co/210x295?text=No+Image", "image", "medium")
+        self.server_list = ["Server 1", "Server 2", "Server 3", "Server 4", "Server 5", "Server 6"]
+        self.links = self.link_dict()
+       
+
+
        
         self.summary = self.get_summary_text() if self.is_null("summary") != True else ""
     # Remove HTML tags from episode summary 
@@ -51,7 +56,24 @@ class Episode:
                 return error_value
             else:
                 return self.episode_info[nest_level1][nest_level2] 
-        
+    # Function to get embed links for episode
+    def embed_links(self):
+        link_templates = ["https://vidsrc.cc/v2/embed/tv/{imdb_id}/{season}/{number}",
+                                   "https://vidlink.pro/tv/{tmdb_id}/{season}/{number}",
+                                   "https://vidsrc-embed.ru/embed/tv/{imdb_id}/{season}-{number}",
+                                   "https://multiembed.mov/?video_id={tmdb_id}&tmdb=1&s={season}&e={number}",
+                                   "https://player.vidplus.to/embed/tv/{tmdb_id}/{season}/{number}",
+                                    "https://getsuperembed.link/?video_id={imdb_id}&season={season}&episode={number}"]
+        link_list = ([link.replace("{imdb_id}", self.imdb_id).replace("{season}", self.season).replace("{number}", self.number) 
+                      if "{imdb_id}" in link 
+                      else link.replace("{tmdb_id}", self.tmdb_id).replace("{season}", self.season).replace("{number}", self.number) 
+                      for link in link_templates]
+                      )
+        return link_list
+    
+    # Create dictionary for server links
+    def link_dict(self):
+        return dict(zip(self.server_list, self.embed_links()))
         
         
 
@@ -74,9 +96,7 @@ class TvShow:
         self.all_episodes = self.get_all_episodes()
         self.season_list = self.get_season_list()
         self.season_episode_dict = self.episodes_by_season()
-        
-
-
+       
 
 # Add string for show name to the end of the api address to show json  
     def get_json(self):
