@@ -2,7 +2,7 @@ import streamlit as st
 from episode_puller_v2 import TvShow
 from episode_puller_v2 import Episode
 from episode_puller_v2 import fuzzy_search_result
-
+import streamlit.components.v1 as components
 st.title("What do you want to watch?")
 
 # Set default values to set my session_state on the first app
@@ -47,7 +47,8 @@ if st.session_state["episode_generated"] == False:
                 st.rerun()
             # If loading a show creates an error, suggests a name that will work 
             # If no suggestion found, tell user could not find a show with that name
-            except Exception as e:     
+            except Exception as e:  
+                st.write(e)   
                 try:
                     st.write(f" Did you mean {fuzzy_search_result(show_name)}")
                     st.session_state["show"] = ""
@@ -181,53 +182,45 @@ else:
                 st.rerun()
         st.markdown(f"# {st.session_state["episode"].name}")
         if "Firefox" in st.session_state["user_agent"]:
-            # Define the URL
             embed_url = f"https://vidsrc-embed.su/embed/tv/{st.session_state['episode'].imdb_id}/{st.session_state['episode'].season}-{st.session_state['episode'].number}"
+            
+            # 1. We create a unique ID for the iframe
+            iframe_id = "ff_player"
 
             st.markdown(
                 f'''
-                <style>
-                    .main-video-wrapper {{
-                        width: 100%;
-                        max-width: 900px; /* Limits size on large desktop screens */
-                        margin: 0 auto;   /* Centers the player */
-                    }}
-                    .video-container {{
-                        position: relative;
-                        width: 100%;
-                        aspect-ratio: 16 / 9;
-                        background-color: #000;
-                        border-radius: 12px;
-                        overflow: hidden;
-                        box-shadow: 0 4px 15px rgba(0,0,0,0.3); /* Adds a nice "elevated" look on desktop */
-                    }}
-                    .video-container iframe {{
-                        position: absolute;
-                        top: 0;
-                        left: 0;
-                        width: 100%;
-                        height: 100%;
-                        border: none;
-                    }}
-                </style>
-                
-                <div class="main-video-wrapper">
-                    <div class="video-container">
-                        <iframe 
-                            src="{embed_url}" 
-                            referrerpolicy="origin" 
-                            sandbox="allow-scripts allow-same-origin"
-                            allow="autoplay; fullscreen; encrypted-media" 
-                            allowfullscreen>
-                        </iframe>
-                    </div>
+                <div id="video-wrapper" style="width:100%; aspect-ratio: 16/9; background:#000; border-radius:12px; overflow:hidden;">
+                    <iframe 
+                        id="{iframe_id}"
+                        src="{embed_url}" 
+                        width="100%" 
+                        height="100%" 
+                        frameborder="0" 
+                        allow="autoplay; encrypted-media; fullscreen"
+                        allowfullscreen="true"
+                        mozallowfullscreen="true"
+                        webkitallowfullscreen="true">
+                    </iframe>
                 </div>
+
+                <script>
+                    // 2. This JS runs in the browser and forces the attributes 
+                    // that the Streamlit sanitizer might have stripped.
+                    var iframe = parent.document.getElementById("{iframe_id}");
+                    if (iframe) {{
+                        iframe.setAttribute("allowfullscreen", "true");
+                        iframe.setAttribute("mozallowfullscreen", "true");
+                        iframe.setAttribute("webkitallowfullscreen", "true");
+                        console.log("Fullscreen attributes injected manually.");
+                    }}
+                </script>
                 ''',
                 unsafe_allow_html=True
             )
-    
-        else:
-            # Define the URL
+        else:   
+          
+           
+             # Define the URL
             embed_url = f"https://vidsrc-embed.su/embed/tv/{st.session_state['episode'].imdb_id}/{st.session_state['episode'].season}-{st.session_state['episode'].number}"
                 # No sandbox in this one bc sandboxes don't work for this player outside of firefox
             st.markdown(
@@ -270,7 +263,7 @@ else:
                 </div>
                 ''',
                 unsafe_allow_html=True
-            )
+            ) 
             st.link_button(
                 "If the above player doesn't work, click me",
                 embed_url
