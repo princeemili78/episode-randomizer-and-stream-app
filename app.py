@@ -23,13 +23,19 @@ def initialize_session_state():
         "previous_episode_error": None,
         "user_agent": st.context.headers.get("User-Agent"),
         "random_mode": False,
-        "specific_mode": False
+        "specific_mode": False,
+        "server": "Server 1"
     }
     
     for key, value in defaults.items():
         if key not in st.session_state:
             st.session_state[key] = value
 
+# Logic for updating server choice when user interacts with the selectbox
+def choose_server():
+    if st.session_state.server_selection != st.session_state["server"]:
+        st.session_state["server"] = st.session_state.server_selection
+    
 initialize_session_state()
 
 # Conditional to show first page of app where user can pick TV show, random/specific episodes and generate the episode
@@ -182,7 +188,7 @@ else:
                 st.rerun()
         st.markdown(f"# {st.session_state["episode"].name}")
         if "Firefox" in st.session_state["user_agent"]:
-            embed_url = f"https://vidsrc-embed.su/embed/tv/{st.session_state['episode'].imdb_id}/{st.session_state['episode'].season}-{st.session_state['episode'].number}"
+            embed_url = st.session_state["episode"].links[st.session_state["server"]]
             
             # 1. We create a unique ID for the iframe
             iframe_id = "ff_player"
@@ -221,7 +227,7 @@ else:
           
            
              # Define the URL
-            embed_url = f"https://vidsrc-embed.su/embed/tv/{st.session_state['episode'].imdb_id}/{st.session_state['episode'].season}-{st.session_state['episode'].number}"
+            embed_url = st.session_state["episode"].links[st.session_state["server"]]
                 # No sandbox in this one bc sandboxes don't work for this player outside of firefox
             st.markdown(
                 f'''
@@ -264,10 +270,23 @@ else:
                 ''',
                 unsafe_allow_html=True
             ) 
+            
+# Add list of servers for user to choose from in case link is broken    
+        col1, col2 = st.columns([.8,.2])
+        with col1:
             st.link_button(
                 "If the above player doesn't work, click me",
                 embed_url
             )
+        with col2:
+            server = st.selectbox("Select Server",
+                                options=list(st.session_state["episode"].links.keys()),
+                                index=list(st.session_state["episode"].links.keys()).index(st.session_state["server"]),
+                                key="server_selection",
+                                placeholder=st.session_state["server"],
+                                on_change=choose_server
+                                )
+            
         col3, col4 = st.columns([.69, .31])
         with col3:
             st.markdown(f"{st.session_state["episode"].season_and_number}")
@@ -309,7 +328,7 @@ else:
         # Send users to either streaming site depending on what browser they are using
         if "Firefox" in st.session_state["user_agent"]:
             # Define the URL
-            embed_url = f"https://vidsrc-embed.su/embed/tv/{st.session_state['episode'].imdb_id}/{st.session_state['episode'].season}-{st.session_state['episode'].number}"
+            embed_url = st.session_state["episode"].links[st.session_state["server"]]
 
             st.markdown(
                 f'''
@@ -355,7 +374,7 @@ else:
             
         else:
             # Define the URL
-            embed_url = f"https://vidsrc-embed.su/embed/tv/{st.session_state['episode'].imdb_id}/{st.session_state['episode'].season}-{st.session_state['episode'].number}"
+            embed_url = st.session_state["episode"].links[st.session_state["server"]]
 
             st.markdown(
                 f'''
@@ -398,11 +417,22 @@ else:
                 unsafe_allow_html=True
             )
 
+            
+# Add list of servers for user to choose from in case link is broken    
+        col1, col2 = st.columns([.8,.2])
+        with col1:
             st.link_button(
                 "If the above player doesn't work, click me",
                 embed_url
             )
-            
+        with col2:
+            server = st.selectbox("Select Server",
+                                options=list(st.session_state["episode"].links.keys()),
+                                index=list(st.session_state["episode"].links.keys()).index(st.session_state["server"]),
+                                key="server_selection",
+                                placeholder=st.session_state["server"],
+                                on_change=choose_server
+                                )
         col4, col5 = st.columns([.85, .15])
         with col5:
             if st.button("Next Episode") == True:
