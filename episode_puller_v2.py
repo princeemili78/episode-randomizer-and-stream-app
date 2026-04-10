@@ -34,7 +34,7 @@ class Episode:
         soup = BeautifulSoup(self.episode_info["summary"], "html.parser")
         text = soup.get_text()
         return text
-    
+       
     # Check for nulls values. If value is not null, it returns true
     def is_null(self, nest_level1, nest_level2=""):
         if nest_level2 == "":
