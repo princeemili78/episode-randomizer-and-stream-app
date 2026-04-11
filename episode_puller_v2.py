@@ -14,9 +14,9 @@ class Episode:
     def __init__(self, episode_info, imdb_id, tmdb_id):
         self.episode_info = episode_info
         self.imdb_id = imdb_id
-        self.tmdb_id = str(tmdb_id)
-        self.season = str(self.set_self("No season info", "season"))
-        self.number = str(self.set_self("No episode number", "number"))
+        self.tmdb_id = tmdb_id
+        self.season = self.set_self("No season info", "season")
+        self.number = self.set_self("No episode number", "number")
         self.season_and_number = f"Season {self.season} Episode {self.number}"     
         self.name = self.set_self("No episode name", "name")
         self.rating = self.set_self(0, "rating", "average")
@@ -64,9 +64,9 @@ class Episode:
                                    "https://multiembed.mov/?video_id={tmdb_id}&tmdb=1&s={season}&e={number}",
                                    "https://player.vidplus.to/embed/tv/{tmdb_id}/{season}/{number}",
                                     "https://getsuperembed.link/?video_id={imdb_id}&season={season}&episode={number}"]
-        link_list = ([link.replace("{imdb_id}", self.imdb_id).replace("{season}", self.season).replace("{number}", self.number) 
+        link_list = ([link.replace("{imdb_id}", str(self.imdb_id)).replace("{season}", str(self.season)).replace("{number}", str(self.number)) 
                       if "{imdb_id}" in link 
-                      else link.replace("{tmdb_id}", self.tmdb_id).replace("{season}", self.season).replace("{number}", self.number) 
+                      else link.replace("{tmdb_id}", str(self.tmdb_id)).replace("{season}", str(self.season)).replace("{number}", str(self.number)) 
                       for link in link_templates]
                       )
         return link_list
