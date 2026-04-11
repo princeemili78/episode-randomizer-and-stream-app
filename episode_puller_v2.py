@@ -93,7 +93,7 @@ class TvShow:
         self.tmdb_id = self.get_tmdb_id()
         self.picture = self.set_self("https://placehold.co/210x295?text=No+Image", "image", "medium")
         self.title_id = self.get_title_id()
-        self.all_episodes = self.get_all_episodes()
+        self._all_episodes = None
         self.season_list = self.get_season_list()
         self.season_episode_dict = self.episodes_by_season()
        
@@ -119,12 +119,13 @@ class TvShow:
                 return tmdb_json["tv_results"][0]["id"]
             else:
                 return None
-        
-
-    def get_all_episodes(self):
-        episodes_json = requests.get(f"https://api.tvmaze.com/shows/{self.title_id}/episodes").json()
-        
-        return [Episode(e, self.imdb_id, self.tmdb_id) for e in episodes_json]
+   # Implementing lazy loading to make shit faster     
+    @property
+    def all_episodes(self):
+        if self._all_episodes == None:
+            episodes_json = requests.get(f"https://api.tvmaze.com/shows/{self.title_id}/episodes").json()
+            self._all_episodes = [Episode(e, self.imdb_id, self.tmdb_id) for e in episodes_json]
+            return self._all_episodes
     
     # Function to get next episode of TvShow
     def next_episode(self, episode):
