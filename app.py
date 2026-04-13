@@ -48,9 +48,14 @@ if st.session_state["episode_generated"] == False:
         # If a user has typed a show name that is different from the show that was previously loaded
         if show_name != "" and st.session_state["show_name"] != show_name :
             try:
-                st.session_state["show"] = TvShow(show_name)
-                st.session_state["show_name"] = show_name
-                st.rerun()
+                with st.spinner(f"Pulling episode data for {show_name}..."):
+                    new_show = TvShow(show_name)
+                    _ = new_show.season_list
+                    _ = new_show.season_episode_dict
+
+                    st.session_state["show"] = new_show
+                    st.session_state["show_name"] = show_name
+                    st.rerun()
             # If loading a show creates an error, suggests a name that will work 
             # If no suggestion found, tell user could not find a show with that name
             except Exception as e:  
@@ -75,6 +80,7 @@ if st.session_state["episode_generated"] == False:
         with col1:
             if st.button("Different show?") == True:
                 st.session_state["show"] = None
+                st.session_state["show_name"] = ""
                 st.rerun()
         col1, col2, col3 = st.columns(3)
         with col2:

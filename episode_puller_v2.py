@@ -1,6 +1,7 @@
 import requests
 import random
 from bs4 import BeautifulSoup
+from datetime import date
 
 
 TMDB_API_KEY = "11e77ad7136edd1deb30fd3a7d5955e6" #REMEMBER TO MOVE TO ST.SECRETS LATER
@@ -90,12 +91,12 @@ class TvShow:
         self.name = name
         self.json = self.get_json()
         self.imdb_id = self.json["externals"]["imdb"] if self.json["externals"]["imdb"] != None else "No ID found"
-        self.tmdb_id = self.get_tmdb_id()
+        self._tmdb_id = None
         self.picture = self.set_self("https://placehold.co/210x295?text=No+Image", "image", "medium")
         self.title_id = self.get_title_id()
         self._all_episodes = None
-        self.season_list = self.get_season_list()
-        self.season_episode_dict = self.episodes_by_season()
+        self._season_list = None
+        self._season_episode_dict = None
        
 
 # Add string for show name to the end of the api address to show json  
@@ -110,21 +111,30 @@ class TvShow:
         id = self.json["id"]
         return id
 # Get tmdb ID
-    def get_tmdb_id(self):
-        if self.imdb_id == "No ID found":
-            return None
-        else:
-            tmdb_json = requests.get(f"https://api.themoviedb.org/3/find/{self.imdb_id}?api_key={TMDB_API_KEY}&external_source=imdb_id").json()
-            if len(tmdb_json["tv_results"]) != 0: 
-                return tmdb_json["tv_results"][0]["id"]
+    @property
+    def tmdb_id(self):
+        if self._tmdb_id == None:
+            if self.imdb_id == "No ID found":
+                self._tmdb_id = None
+                return self._tmdb_id
             else:
-                return None
+                tmdb_json = requests.get(f"https://api.themoviedb.org/3/find/{self.imdb_id}?api_key={TMDB_API_KEY}&external_source=imdb_id").json()
+                if len(tmdb_json["tv_results"]) != 0: 
+                    self._tmdb_id = tmdb_json["tv_results"][0]["id"]
+                    return self._tmdb_id
+                else:
+                    self._tmdb_id = None
+                    return self._tmdb_id
+        else:
+            return self._tmdb_id
    # Implementing lazy loading to make shit faster     
     @property
     def all_episodes(self):
         if self._all_episodes == None:
             episodes_json = requests.get(f"https://api.tvmaze.com/shows/{self.title_id}/episodes").json()
             self._all_episodes = [Episode(e, self.imdb_id, self.tmdb_id) for e in episodes_json]
+            return self._all_episodes       
+        else:
             return self._all_episodes
     
     # Function to get next episode of TvShow
@@ -168,15 +178,23 @@ class TvShow:
                 return self.json[nest_level1][nest_level2] 
         
     # Get list of seasons by parsing through episode list for unique season values
-    def get_season_list(self):
-        season_list = {self.all_episodes[e].season for e in range(len(self.all_episodes))}
-        season_list = sorted(season_list)
-        return season_list
+    @property
+    def season_list(self):
+        if self._season_list == None:
+            season_list = {self.all_episodes[e].season for e in range(len(self.all_episodes))}
+            self._season_list = sorted(season_list)
+            return self._season_list
+        else:
+            return self._season_list
     
 # Create dictionary with Season as key and list of episodes matching season as value
-    def episodes_by_season(self):
-        seasons_dict = {season: [episode for episode in self.all_episodes if episode.season == season] for season in self.season_list}
-        return seasons_dict
+    @property
+    def season_episode_dict(self):
+        if self._season_episode_dict == None:
+            self._season_episode_dict = {season: [episode for episode in self.all_episodes if episode.season == season] for season in self.season_list}
+            return self._season_episode_dict
+        else:
+            return self._season_episode_dict
 
 # Create list of episode numbers in a specific season
     def episode_numbers_in_season(self, season):
