@@ -97,7 +97,7 @@ class TvShow:
         self._all_episodes = None
         self._season_list = None
         self._season_episode_dict = None
-       
+        
 
 # Add string for show name to the end of the api address to show json  
     def get_json(self):
