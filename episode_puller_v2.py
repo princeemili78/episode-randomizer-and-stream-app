@@ -1,6 +1,7 @@
 import requests
 import random
 from bs4 import BeautifulSoup
+from datetime import datetime
 from datetime import date
 
 
@@ -18,6 +19,7 @@ class Episode:
         self.tmdb_id = tmdb_id
         self.season = self.set_self("No season info", "season")
         self.number = self.set_self("No episode number", "number")
+        self.release_date = episode_info["airdate"]
         self.season_and_number = f"Season {self.season} Episode {self.number}"     
         self.name = self.set_self("No episode name", "name")
         self.rating = self.set_self(0, "rating", "average")
@@ -25,11 +27,19 @@ class Episode:
         self.image = self.set_self("https://placehold.co/210x295?text=No+Image", "image", "medium")
         self.server_list = ["Server 1", "Server 2", "Server 3", "Server 4", "Server 5", "Server 6"]
         self.links = self.link_dict()
-       
-
-
-       
         self.summary = self.get_summary_text() if self.is_null("summary") != True else ""
+        self.isReleased = self._isReleased()
+
+    # Check if an episode has actually been released
+    def _isReleased(self):
+        if self.release_date == "":
+            return False
+        else:
+            if datetime.strptime(self.release_date, "%Y-%m-%d").date() > date.today():
+                return False
+            else:
+                return True
+
     # Remove HTML tags from episode summary 
     def get_summary_text(self):
         soup = BeautifulSoup(self.episode_info["summary"], "html.parser")
@@ -132,7 +142,9 @@ class TvShow:
     def all_episodes(self):
         if self._all_episodes == None:
             episodes_json = requests.get(f"https://api.tvmaze.com/shows/{self.title_id}/episodes").json()
-            self._all_episodes = [Episode(e, self.imdb_id, self.tmdb_id) for e in episodes_json]
+            all_episodes = [Episode(e, self.imdb_id, self.tmdb_id) for e in episodes_json]
+            released_episodes = [e for e in all_episodes if e.isReleased]
+            self._all_episodes = released_episodes
             return self._all_episodes       
         else:
             return self._all_episodes
