@@ -31,6 +31,30 @@ def initialize_session_state():
         if key not in st.session_state:
             st.session_state[key] = value
 
+def reset_session_state():
+    # Centralizing EVERY session state key used in your app
+    defaults = {
+        "show": "", 
+        "show_name": "", 
+        "episode_generated": False, 
+        "episode": "", 
+        "rating": None, 
+        "seasons": [], 
+        "valid_episodes": [], 
+        "episode_error": None,
+        "disabled": False,
+        "season_choice": None,
+        "next_episode_error": None,
+        "previous_episode_error": None,
+        "user_agent": st.context.headers.get("User-Agent"),
+        "random_mode": False,
+        "specific_mode": False,
+        "server": "Server 1"
+    }
+    
+    for key, value in defaults.items():
+        st.session_state[key] = value
+
 # Logic for updating server choice when user interacts with the selectbox
 def choose_server():
     if st.session_state.server_selection != st.session_state["server"]:
@@ -106,9 +130,15 @@ if st.session_state["episode_generated"] == False:
         isinstance(st.session_state["show"], TvShow) 
         and st.session_state["random_mode"] 
     ):    
-        if st.button("Change modes") == True:
-            st.session_state["random_mode"] = False
-            st.rerun()
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Change modes") == True:
+                st.session_state["random_mode"] = False
+                st.rerun()
+        with col2:
+            if st.button("Change show") == True:
+                reset_session_state()
+                st.rerun()
         col1, col2, col3 = st.columns([.5, .2, .3])
         with col3:
             st.image(st.session_state["show"].picture) 
@@ -143,10 +173,16 @@ if st.session_state["episode_generated"] == False:
     if ( 
         isinstance(st.session_state["show"], TvShow) 
         and st.session_state["specific_mode"]
-    ):    
-        if st.button("Change modes") == True:
-            st.session_state["specific_mode"] = False
-            st.rerun()
+    ):  
+        col1, col2 = st.columns(2)
+        with col1:  
+            if st.button("Change modes") == True:
+                st.session_state["specific_mode"] = False
+                st.rerun()
+        with col2:
+            if st.button("Change show") == True:
+                reset_session_state()
+                st.rerun()
         col1, col2 = st.columns(2)
         with col1:    
             season_choice = st.selectbox(
@@ -191,6 +227,11 @@ else:
                 st.session_state["episode_generated"] = False
                 st.session_state["episode_error"] = None
                 st.session_state["disabled"] = False
+                st.rerun()
+            
+        with col2:
+            if st.button("Change show") == True:
+                reset_session_state()
                 st.rerun()
         st.markdown(f"# {st.session_state["episode"].name}")
         if "Firefox" in st.session_state["user_agent"]:
@@ -328,6 +369,10 @@ else:
                 st.session_state["episode_generated"] = False
                 st.session_state["next_episode_error"] = None
                 st.session_state["previous_episode_error"] = None
+                st.rerun()
+        with col2:
+            if st.button("Change show") == True:
+                reset_session_state()
                 st.rerun()
         st.markdown(f"# {st.session_state["episode"].name}")
         st.markdown(f"{st.session_state["episode"].summary}")
