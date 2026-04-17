@@ -116,7 +116,7 @@ if st.session_state["episode_generated"] == False:
                 search_results = search(st.session_state["query"])
                 st.session_state["search_results"] = search_results                               
             except Exception as e:
-                st.write(e)
+                st.write("Could not find a show with that name")
         if st.session_state["search_results"] != [] and st.session_state["query"] != "":
             clicked = clickable_images(
                     search_result_urls(st.session_state["search_results"]),
