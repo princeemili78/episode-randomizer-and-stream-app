@@ -95,6 +95,24 @@ def choose_server():
 def search(search_query):
     return fuzzy_search_result(search_query)
 
+def execute_search():
+    # This runs ONLY when the user presses Enter in the text box.
+    # At this exact moment, st.session_state["query"] already holds the new text!
+    new_query = st.session_state["query"]
+    
+    if new_query != "":
+        try:
+            # 1. Fetch the new results
+            search_results = search(new_query)
+            # 2. Save them to memory
+            st.session_state["search_results"] = search_results
+            # 3. Clear out any previously selected show
+            st.session_state["show"] = "" 
+        except Exception:
+            # If it fails, empty the results list
+            st.session_state["search_results"] = []
+            st.error("Couldn't find a show with that name")
+
 
 
     
@@ -108,16 +126,13 @@ if st.session_state["episode_generated"] == False:
     # If a show has not been loaded then present the text box for the user to type out a show to watch
     if not isinstance(st.session_state["show"], TvShow):
         
-        query = st.text_input("Name of Tv Show", 
-                                    help="Type name of show")
-        if query != "" and query != st.session_state["query"]:
-            st.session_state["query"] = query
-            try:
-                search_results = search(st.session_state["query"])
-                st.session_state["search_results"] = search_results                               
-            except Exception as e:
-                st.write("Could not find a show with that name")
-        if st.session_state["search_results"] != [] and st.session_state["query"] != "":
+        st.text_input(
+        "Name of Tv Show", 
+        help="Type name of show",
+        key="query",
+        on_change=execute_search
+    )
+        if len(st.session_state["search_results"]) > 0:
             clicked = clickable_images(
                     search_result_urls(st.session_state["search_results"]),
                     # Align search images to left edge
@@ -132,7 +147,8 @@ if st.session_state["episode_generated"] == False:
                         "width": "200px", 
                         "border-radius": "8px", 
                         "cursor": "pointer" 
-                    }
+                    },
+                    key=f"image_grid_{len(st.session_state['search_results'])}"
                 )
             if clicked != -1:
                 with st.spinner(f"Pulling episode data for {st.session_state["search_results"][clicked].name}..."):
