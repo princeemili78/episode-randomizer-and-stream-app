@@ -97,8 +97,8 @@ class TvShow:
     :ivar seasons: List of seasons object corresponding to number of seasons in show
     """
 
-    def __init__(self, name):
-        self.name = name
+    def __init__(self, json_link):
+        self.json_link = json_link
         self.json = self.get_json()
         self.imdb_id = self.json["externals"]["imdb"] if self.json["externals"]["imdb"] != None else "No ID found"
         self._tmdb_id = None
@@ -111,7 +111,7 @@ class TvShow:
 
 # Add string for show name to the end of the api address to show json  
     def get_json(self):
-        r = requests.get("https://api.tvmaze.com/singlesearch/shows?q=" + self.name)
+        r = requests.get(self.json_link)
         if r.json() == None:
             raise Exception("Could not find a show with that name")
         
@@ -248,14 +248,51 @@ class TvShow:
     
     # Function to return 
 
-# Function to return the name of the first result in a search
-def fuzzy_search_result(typo):
-    r = requests.get(f"https://api.tvmaze.com/search/shows?q= {typo}").json()
+
+class SearchResult:
+    """Creates instance of a SearchResult
+
+    :param show_name: result_json
+    """
+    def __init__(self, result_json):
+        self.result_json = result_json
+        self.link = self.result_json["_links"]["self"]["href"]
+        self.image = self.set_self("https://placehold.co/210x295?text=No+Image", "image", "medium")
+        
+        
+
+   
+    # Check for nulls values. If value is not null, it returns true
+    def is_null(self, nest_level1, nest_level2=""):
+        if nest_level2 == "":
+            return self.result_json[nest_level1] == None 
+        elif self.result_json[nest_level1] == None:
+            return True
+        else:
+            return self.result_json[nest_level1][nest_level2] == None
+    
+    # Use value for null to return proper value in the init
+    def set_self (self, error_value, nest_level1, nest_level2=""):
+        if nest_level2 == "":
+            if self.is_null(nest_level1) == True:
+                return error_value
+            else:
+                return self.result_json[nest_level1]
+        else:
+            if self.is_null(nest_level1, nest_level2) == True:
+                return error_value
+            else:
+                return self.result_json[nest_level1][nest_level2] 
+
+
+# Function to return all search results for a query
+def fuzzy_search_result(search):
+    r = requests.get(f"https://api.tvmaze.com/search/shows?q= {search}").json()
     if r == None:
             raise Exception("Could not find a show with that name")
     
-    top_result_name = r[0]["show"]["name"]  
-    return top_result_name 
+    search_results = [SearchResult(r[idx]["show"]) for idx in range(len(r)) ]
+    return search_results
 
 
 

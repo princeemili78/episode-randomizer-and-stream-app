@@ -11,6 +11,7 @@ def initialize_session_state():
     defaults = {
         "show": "", 
         "show_name": "", 
+        "search_results": [],
         "episode_generated": False, 
         "episode": "", 
         "rating": None, 
@@ -24,7 +25,8 @@ def initialize_session_state():
         "user_agent": st.context.headers.get("User-Agent"),
         "random_mode": False,
         "specific_mode": False,
-        "server": "Server 1"
+        "server": "Server 1",
+        "sleep_mode": False
     }
     
     for key, value in defaults.items():
@@ -36,6 +38,7 @@ def reset_session_state():
     defaults = {
         "show": "", 
         "show_name": "", 
+        "search_results": [],
         "episode_generated": False, 
         "episode": "", 
         "rating": None, 
@@ -49,7 +52,8 @@ def reset_session_state():
         "user_agent": st.context.headers.get("User-Agent"),
         "random_mode": False,
         "specific_mode": False,
-        "server": "Server 1"
+        "server": "Server 1",
+        "sleep_mode": False
     }
     
     for key, value in defaults.items():
@@ -59,6 +63,23 @@ def reset_session_state():
 def choose_server():
     if st.session_state.server_selection != st.session_state["server"]:
         st.session_state["server"] = st.session_state.server_selection
+def search(search_query):
+    return fuzzy_search_result(search_query)
+
+
+# Create grid 3x3 grid of search result images
+def search_result_grid(search_results):
+    num_columns_per_row = 3
+    num_rows = -(-len(search_results) // num_columns_per_row)
+    for idx in range(num_rows): 
+        col1, col2, col3 = st.columns(3)
+        col1.image(search_results[(idx * num_columns_per_row)].image)
+        if (idx * num_columns_per_row) + 2 <= len(search_results):
+            col2.image(search_results[(idx * num_columns_per_row) + 1].image)
+            if (idx * num_columns_per_row) + 3 <= len(search_results):
+                col3.image(search_results[(idx * num_columns_per_row) + 2].image)
+    
+    
     
 initialize_session_state()
 
@@ -66,7 +87,12 @@ initialize_session_state()
 if st.session_state["episode_generated"] == False:
     # If a show has not been loaded then present the text box for the user to type out a show to watch
     if not isinstance(st.session_state["show"], TvShow):
-        show_name = st.text_input("Name of Tv Show", help="Type name of show")
+        show_name = ""
+        query = st.text_input("Name of Tv Show", 
+                                    help="Type name of show",)
+        
+        search_results = search(query)                            
+        search_result_grid(search_results)
         
         # create instance of tv show using user input
         # If a user has typed a show name that is different from the show that was previously loaded
