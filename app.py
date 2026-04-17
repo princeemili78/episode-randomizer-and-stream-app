@@ -40,6 +40,7 @@ def initialize_session_state():
     defaults = {
         "show": "", 
         "search_results": [],
+        "query": "",
         "episode_generated": False, 
         "episode": "", 
         "rating": None, 
@@ -66,6 +67,7 @@ def reset_session_state():
     defaults = {
         "show": "", 
         "search_results": [],
+        "query": "",
         "episode_generated": False, 
         "episode": "", 
         "rating": None, 
@@ -107,22 +109,39 @@ if st.session_state["episode_generated"] == False:
     if not isinstance(st.session_state["show"], TvShow):
         
         query = st.text_input("Name of Tv Show", 
-                                    help="Type name of show",)
-        if query != "":
+                                    help="Type name of show")
+        if query != "" and query != st.session_state["query"]:
+            st.session_state["query"] = query
             try:
-                search_results = search(query)                            
-                clicked = clickable_images(
-                    search_result_urls(search_results)
+                search_results = search(st.session_state["query"])
+                st.session_state["search_results"] = search_results                               
+            except Exception as e:
+                st.write(e)
+        if st.session_state["search_results"] != [] and st.session_state["query"] != "":
+            clicked = clickable_images(
+                    search_result_urls(st.session_state["search_results"]),
+                    # Align search images to left edge
+                    div_style={
+                        "display": "flex", 
+                        "flex-wrap": "wrap", 
+                        "justify-content": "flex-start", 
+                        "gap": "10px" 
+                    },
+                    # Give posters uniform width
+                    img_style={
+                        "width": "200px", 
+                        "border-radius": "8px", 
+                        "cursor": "pointer" 
+                    }
                 )
-                if clicked != -1:
-                    with st.spinner(f"Pulling episode data for {search_results[clicked].name}..."):
-                        show = TvShow(search_results[clicked].link)
-                        _ = show.season_list
-                        _ = show.season_episode_dict
-                        st.session_state["show"] = show
-                        st.rerun()
-            except Exception:
-                st.write("Couldn't find a show with that name")
+            if clicked != -1:
+                with st.spinner(f"Pulling episode data for {st.session_state["search_results"][clicked].name}..."):
+                    show = TvShow(st.session_state["search_results"][clicked].link)
+                    _ = show.season_list
+                    _ = show.season_episode_dict
+                    st.session_state["show"] = show
+                    st.rerun()
+
         # create instance of tv show using user input
         # If a user has typed a show name that is different from the show that was previously loaded
         
