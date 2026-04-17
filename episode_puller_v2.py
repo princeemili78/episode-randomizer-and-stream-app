@@ -258,6 +258,7 @@ class SearchResult:
         self.result_json = result_json
         self.link = self.result_json["_links"]["self"]["href"]
         self.image = self.set_self("https://placehold.co/210x295?text=No+Image", "image", "medium")
+        self.name = self.set_self("", "name")
         
         
 
@@ -288,7 +289,7 @@ class SearchResult:
 # Function to return all search results for a query
 def fuzzy_search_result(search):
     r = requests.get(f"https://api.tvmaze.com/search/shows?q= {search}").json()
-    if r == None:
+    if r == []:
             raise Exception("Could not find a show with that name")
     
     search_results = [SearchResult(r[idx]["show"]) for idx in range(len(r)) ]

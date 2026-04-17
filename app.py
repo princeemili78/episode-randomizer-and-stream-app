@@ -5,12 +5,40 @@ from episode_puller_v2 import Episode
 from episode_puller_v2 import fuzzy_search_result
 st.title("What do you want to watch?")
 
+# --- INJECT FLOATING SPINNER CSS ---
+st.markdown(
+    """
+    <style>
+    /* Target the container Streamlit uses for the spinner */
+    div[data-testid="stSpinner"] {
+        position: fixed !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        z-index: 9999 !important; /* Stay on top of everything */
+        background-color: rgba(0, 0, 0, 0.8) !important; /* Dark background */
+        padding: 25px !important;
+        border-radius: 12px !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.5) !important;
+    }
+    
+    /* Optional: Make the text inside the spinner white so it's readable */
+    div[data-testid="stSpinner"] > div > div > p {
+        color: white !important;
+        font-size: 18px !important;
+        font-weight: bold !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+# -----------------------------------
+
 # Set default values to set my session_state on the first app
 def initialize_session_state():
     # Centralizing EVERY session state key used in your app
     defaults = {
         "show": "", 
-        "show_name": "", 
         "search_results": [],
         "episode_generated": False, 
         "episode": "", 
@@ -37,7 +65,6 @@ def reset_session_state():
     # Centralizing EVERY session state key used in your app
     defaults = {
         "show": "", 
-        "show_name": "", 
         "search_results": [],
         "episode_generated": False, 
         "episode": "", 
@@ -78,20 +105,24 @@ initialize_session_state()
 if st.session_state["episode_generated"] == False:
     # If a show has not been loaded then present the text box for the user to type out a show to watch
     if not isinstance(st.session_state["show"], TvShow):
-        show_name = ""
+        
         query = st.text_input("Name of Tv Show", 
                                     help="Type name of show",)
-        
-        search_results = search(query)                            
-        clicked = clickable_images(
-            search_result_urls(search_results)
-        )
-        if clicked != -1:
-            show = TvShow(search_results[clicked].link)
-            _ = show.season_list
-            _ = show.season_episode_dict
-            st.session_state["show"] = show
-            st.rerun()
+        if query != "":
+            try:
+                search_results = search(query)                            
+                clicked = clickable_images(
+                    search_result_urls(search_results)
+                )
+                if clicked != -1:
+                    with st.spinner(f"Pulling episode data for {search_results[clicked].name}..."):
+                        show = TvShow(search_results[clicked].link)
+                        _ = show.season_list
+                        _ = show.season_episode_dict
+                        st.session_state["show"] = show
+                        st.rerun()
+            except Exception:
+                st.write("Couldn't find a show with that name")
         # create instance of tv show using user input
         # If a user has typed a show name that is different from the show that was previously loaded
         
@@ -104,7 +135,6 @@ if st.session_state["episode_generated"] == False:
         with col1:
             if st.button("Different show?") == True:
                 st.session_state["show"] = None
-                st.session_state["show_name"] = ""
                 st.rerun()
         col1, col2, col3 = st.columns(3)
         with col2:
