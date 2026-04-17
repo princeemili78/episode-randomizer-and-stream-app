@@ -107,8 +107,15 @@ class TvShow:
         self._all_episodes = None
         self._season_list = None
         self._season_episode_dict = None
+        self.name = self.set_self("", "name")
+        self.summary = self.get_summary_text() if self.is_null("summary") != True else ""
         
 
+# Remove HTML tags from episode summary 
+    def get_summary_text(self):
+        soup = BeautifulSoup(self.json["summary"], "html.parser")
+        text = soup.get_text()
+        return text
 # Add string for show name to the end of the api address to show json  
     def get_json(self):
         r = requests.get(self.json_link)

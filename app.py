@@ -155,6 +155,8 @@ if st.session_state["episode_generated"] == False:
             if st.button("Different show?") == True:
                 st.session_state["show"] = None
                 st.rerun()
+        st.header(st.session_state["show"].name)
+        st.markdown(st.session_state["show"].summary)
         col1, col2, col3 = st.columns(3)
         with col2:
             st.image(st.session_state["show"].picture)
