@@ -1,8 +1,8 @@
 import streamlit as st
+from st_clickable_images import clickable_images
 from episode_puller_v2 import TvShow
 from episode_puller_v2 import Episode
 from episode_puller_v2 import fuzzy_search_result
-import streamlit.components.v1 as components
 st.title("What do you want to watch?")
 
 # Set default values to set my session_state on the first app
@@ -67,19 +67,10 @@ def search(search_query):
     return fuzzy_search_result(search_query)
 
 
-# Create grid 3x3 grid of search result images
-def search_result_grid(search_results):
-    num_columns_per_row = 3
-    num_rows = -(-len(search_results) // num_columns_per_row)
-    for idx in range(num_rows): 
-        col1, col2, col3 = st.columns(3)
-        col1.image(search_results[(idx * num_columns_per_row)].image)
-        if (idx * num_columns_per_row) + 2 <= len(search_results):
-            col2.image(search_results[(idx * num_columns_per_row) + 1].image)
-            if (idx * num_columns_per_row) + 3 <= len(search_results):
-                col3.image(search_results[(idx * num_columns_per_row) + 2].image)
+
     
-    
+def search_result_urls(search_results):
+    return [search_results[idx].image for idx in range(len(search_results))]
     
 initialize_session_state()
 
@@ -92,35 +83,18 @@ if st.session_state["episode_generated"] == False:
                                     help="Type name of show",)
         
         search_results = search(query)                            
-        search_result_grid(search_results)
-        
+        clicked = clickable_images(
+            search_result_urls(search_results)
+        )
+        if clicked != -1:
+            show = TvShow(search_results[clicked].link)
+            _ = show.season_list
+            _ = show.season_episode_dict
+            st.session_state["show"] = show
+            st.rerun()
         # create instance of tv show using user input
         # If a user has typed a show name that is different from the show that was previously loaded
-        if show_name != "" and st.session_state["show_name"] != show_name :
-            try:
-                with st.spinner(f"Pulling episode data for {show_name}..."):
-                    new_show = TvShow(show_name)
-                    _ = new_show.season_list
-                    _ = new_show.season_episode_dict
-
-                    st.session_state["show"] = new_show
-                    st.session_state["show_name"] = show_name
-                    st.rerun()
-            # If loading a show creates an error, suggests a name that will work 
-            # If no suggestion found, tell user could not find a show with that name
-            except Exception as e:  
-                st.write(e)   
-                try:
-                    st.write(f" Did you mean {fuzzy_search_result(show_name)}")
-                    st.session_state["show"] = ""
-                    st.session_state["show_name"] = show_name
-                except:
-                    st.write("Couldn't find a show with that name")
-                    st.session_state["show"] = ""
-                    st.session_state["show_name"] = show_name
-    # If TV show is loaded properly display picture of TV show and 
-    # give user option to watch random episodes or specific ones
-    # as well as option to change TV show    
+        
     if ( 
         isinstance(st.session_state["show"], TvShow) 
         and not st.session_state["random_mode"] 
